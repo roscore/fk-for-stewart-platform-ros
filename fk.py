@@ -145,21 +145,23 @@ def process():
 
     #define coord system origin as the center of the bottom plate
     #Find base plate attachment locations
-    bAngles = [15, 105, 135, 225, 255, 345]
+    #bAngles = [15, 105, 135, 225, 255, 345]
+    bAngles = [334.635, 355.365, 94.635, 115.365, 214.635, 235.365]
     bAngles = [math.radians(x) for x in bAngles]
-    bR = 50
+    bR = 524.976 # 600
     bPos = [[bR*math.cos(theta), bR*math.sin(theta), 0] for theta in bAngles]
 
     #Platform attachment locations
-    pAngles = [45, 75, 165, 195, 285, 315]
+    #pAngles = [45, 75, 165, 195, 285, 315]
+    pAngles = [297.751, 32.249, 57.751, 152.249, 177.751, 272.249]
     pAngles = [math.radians(x) for x in pAngles]
-    pR = 50
+    pR = 333.648 # 400
     pPos = [[pR*math.cos(theta), pR*math.sin(theta), 0] for theta in pAngles]
 
-    height = 100
+    height = 423.21445
 
-    legMin = [50]*6
-    legMax = [100]*6
+    legMin = [357.7]*6
+    legMax = [480]*6
 
     #Base UV joint limits
     A = [math.pi/4]*6
@@ -171,12 +173,13 @@ def process():
 
     #pub = rospy.Publisher('stewart/platform_twist', Twist, qeue_size=100)
     rospy.init_node('forward_kinematics_node')
+    rospy.Publisher('/stewart/curr_pos', Twist, queue_size=100)
     rate = rospy.Rate(100)
     iter = 0
 
     while not rospy.is_shutdown():
             start_time = time.time()
-            L = numpy.array([122.759+iter, 122.759, 122.759, 122.759, 122.759, 122.759]).transpose()
+            L = numpy.array([357.7, 357.7, 357.7, 357.7, 357.7, 357.7]).transpose()
             a = fk(bPos, pPos, L)
             print(a)
             print("time :", time.time()-start_time)
