@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
+import rospy
 import math
 
-#define coord system origin as the centre of the bottom plate
+#define coord system origin as the center of the bottom plate
 #Find base plate attachment locations
 bAngles = [15, 105, 135, 225, 255, 345]
 bAngles = [math.radians(x) for x in bAngles]

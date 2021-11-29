@@ -9,6 +9,7 @@ import math
 import numpy
 import matplotlib.pyplot as plt
 
+import time
 
 def ik(bPos, pPos, a, ik=True):
     """Finds leg lengths L such that the platform is in position defined by
@@ -88,7 +89,7 @@ def fk(bPos, pPos, L):
         #Hence orientation of platform wrt base
         
         uvw = numpy.zeros(pPos.shape)
-        for i in xrange(6):
+        for i in range(6):
             uvw[i, :] = numpy.dot(Rzyx, pPos[i, :])
             
         
@@ -105,14 +106,14 @@ def fk(bPos, pPos, L):
         sumF = numpy.sum(numpy.abs(f))
         if sumF < tol_f:
             #success!
-            print "Converged! Output is in 'a' variable"
+            print("Converged! Output is in 'a' variable")
             break
         
         #As using the newton-raphson matrix, need the jacobian (/hessian?) matrix
         #Using paper linked above:
         dfda = numpy.zeros((6, 6))
         dfda[:, 0:3] = 2*(xbar + uvw)
-        for i in xrange(6):
+        for i in range(6):
             #Numpy * is elementwise multiplication!!
             #Indicing starts at 0!
             #dfda4 is swapped with dfda6 for magic reasons!  
@@ -125,32 +126,61 @@ def fk(bPos, pPos, L):
         delta_a = numpy.linalg.solve(dfda, f)
     
         if abs(numpy.sum(delta_a)) < tol_a:
-            print "Small change in lengths -- converged?"
+            print("Small change in lengths -- converged?")
             break
         a = a + delta_a
     
     #for i in xrange(3,6):
     #    a[i] = math.degrees(a[i])
-    print "In %d iterations" % (iterNum)
+    print("In %d iterations" % (iterNum))
     return a
     
     
-def main():   
+def process():   
 
 	#Load S-G platform configuration and convert to numpy arrays
-    from configuration import *
+    #from configuration import *
+    #from configuration import bAngles, bR, bPos, pAngles, pR, pPos, height, legMin, legMax, A, B
+    #import configuration
+
+    #define coord system origin as the center of the bottom plate
+    #Find base plate attachment locations
+    bAngles = [15, 105, 135, 225, 255, 345]
+    bAngles = [math.radians(x) for x in bAngles]
+    bR = 50
+    bPos = [[bR*math.cos(theta), bR*math.sin(theta), 0] for theta in bAngles]
+
+    #Platform attachment locations
+    pAngles = [45, 75, 165, 195, 285, 315]
+    pAngles = [math.radians(x) for x in pAngles]
+    pR = 50
+    pPos = [[pR*math.cos(theta), pR*math.sin(theta), 0] for theta in pAngles]
+
+    height = 100
+
+    legMin = [50]*6
+    legMax = [100]*6
+
+    #Base UV joint limits
+    A = [math.pi/4]*6
+    #Platform ball joint limits
+    B = [math.pi/2]*6
+
     bPos = numpy.array(bPos)
     pPos = numpy.array(pPos)
 
-    pub = rospy.Publisher('stewart/platform_twist', Twist, qeue_size=100)
-    rospy.init_node('forward_kinematics_node', anonymmous=True)
+    #pub = rospy.Publisher('stewart/platform_twist', Twist, qeue_size=100)
+    rospy.init_node('forward_kinematics_node')
     rate = rospy.Rate(100)
-    
+    iter = 0
+
     while not rospy.is_shutdown():
-        for int iter in 100:
+            start_time = time.time()
             L = numpy.array([122.759+iter, 122.759, 122.759, 122.759, 122.759, 122.759]).transpose()
             a = fk(bPos, pPos, L)
-            print a
+            print(a)
+            print("time :", time.time()-start_time)
+            iter = iter + 1
             rate.sleep()
     
     #print ik(bPos, pPos, a)
@@ -181,7 +211,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        process()
     except rospy.ROSInterruptException:
         pass
 

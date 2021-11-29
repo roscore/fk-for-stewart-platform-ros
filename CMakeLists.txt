@@ -15,6 +15,6 @@ include_directories(
 # ${catkin_INCLUDE_DIRS}
 )
 
-catkin_install_python(PROGRAMS fk.py
+catkin_install_python(PROGRAMS fk.py configuration.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
