@@ -4,12 +4,27 @@
 import rospy
 from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import JointState
 
 import math
 import numpy
 import matplotlib.pyplot as plt
 
 import time
+
+motor1_length = 0.0
+motor2_length = 0.0
+motor3_length = 0.0
+motor4_length = 0.0
+motor5_length = 0.0
+motor6_length = 0.0
+
+update_flag1 = False
+update_flag2 = False
+update_flag3 = False
+update_flag4 = False
+update_flag5 = False
+update_flag6 = False
 
 def ik(bPos, pPos, a, ik=True):
     """Finds leg lengths L such that the platform is in position defined by
@@ -106,7 +121,7 @@ def fk(bPos, pPos, L):
         sumF = numpy.sum(numpy.abs(f))
         if sumF < tol_f:
             #success!
-            print("Converged! Output is in 'a' variable")
+            #print("Converged! Output is in 'a' variable")
             break
         
         #As using the newton-raphson matrix, need the jacobian (/hessian?) matrix
@@ -126,16 +141,52 @@ def fk(bPos, pPos, L):
         delta_a = numpy.linalg.solve(dfda, f)
     
         if abs(numpy.sum(delta_a)) < tol_a:
-            print("Small change in lengths -- converged?")
+            #print("Small change in lengths -- converged?")
             break
         a = a + delta_a
     
     #for i in xrange(3,6):
     #    a[i] = math.degrees(a[i])
-    print("In %d iterations" % (iterNum))
+    #print("In %d iterations" % (iterNum))
     return a
-    
-    
+
+
+def motor1Callback(data):
+    global motor1_length
+    global update_flag1
+    motor1_length = -data.position[0] / 6.318 * 10 + 357.7
+    update_flag1 = True
+
+def motor2Callback(data):
+    global motor2_length
+    global update_flag2
+    motor2_length = -data.position[0] / 6.318 * 10 + 357.7
+    update_flag2 = True
+
+def motor3Callback(data):
+    global motor3_length
+    global update_flag3
+    motor3_length = -data.position[0] / 6.318 * 10 + 357.7
+    update_flag3 = True
+
+def motor4Callback(data):
+    global motor4_length
+    global update_flag4
+    motor4_length = -data.position[0] / 6.318 * 10 + 357.7
+    update_flag4 = True
+
+def motor5Callback(data):
+    global motor5_length
+    global update_flag5
+    motor5_length = -data.position[0] / 6.318 * 10 + 357.7
+    update_flag5 = True
+
+def motor6Callback(data):
+    global motor6_length
+    global update_flag6
+    motor6_length = -data.position[0] / 6.318 * 10 + 357.7
+    update_flag6 = True
+
 def process():   
 
 	#Load S-G platform configuration and convert to numpy arrays
@@ -174,18 +225,52 @@ def process():
     #pub = rospy.Publisher('stewart/platform_twist', Twist, qeue_size=100)
     rospy.init_node('forward_kinematics_node')
     rospy.Publisher('/stewart/curr_pos', Twist, queue_size=100)
+    
+    rospy.Subscriber('/motor_1/joint_states', JointState, motor1Callback)
+    rospy.Subscriber('/motor_2/joint_states', JointState, motor2Callback)
+    rospy.Subscriber('/motor_3/joint_states', JointState, motor3Callback)
+    rospy.Subscriber('/motor_4/joint_states', JointState, motor4Callback)
+    rospy.Subscriber('/motor_5/joint_states', JointState, motor5Callback)
+    rospy.Subscriber('/motor_6/joint_states', JointState, motor6Callback)
+    
+
     rate = rospy.Rate(100)
-    iter = 0
+
+    global motor1_length
+    global update_flag1
+    global motor2_length
+    global update_flag2
+    global motor3_length
+    global update_flag3
+    global motor4_length
+    global update_flag4
+    global motor5_length
+    global update_flag5
+    global motor6_length
+    global update_flag6
+
+    #L = numpy.array([357.7, 357.7, 357.7, 357.7, 357.7, 357.7]).transpose()
 
     while not rospy.is_shutdown():
+        
+
+
+        flag = update_flag1 * update_flag2 * update_flag3 * update_flag4 * update_flag5 * update_flag6
+
+        if flag:
             start_time = time.time()
-            L = numpy.array([357.7, 357.7, 357.7, 357.7, 357.7, 357.7]).transpose()
+            L = numpy.array([motor1_length, motor2_length, motor3_length, motor4_length, motor5_length, motor6_length]).transpose()
             a = fk(bPos, pPos, L)
             print(a)
             print("time :", time.time()-start_time)
-            iter = iter + 1
-            rate.sleep()
-    
+            update_flag1 = False
+            update_flag2 = False
+            update_flag3 = False
+            update_flag4 = False
+            update_flag5 = False
+            update_flag6 = False
+
+        rate.sleep()
     #print ik(bPos, pPos, a)
     #a = numpy.array([0,0,0, 1, 0, 0]).transpose()
     #print ik(bPos, pPos, a)

@@ -13,6 +13,7 @@
  <buildtool_depend>catkin</buildtool_depend>
  <buildtool_depend>std_msgs</buildtool_depend>
  <buildtool_depend>geometry_msgs</buildtool_depend>
+ <buildtool_depend>sensor_msgs</buildtool_depend>
 
   <export>
   </export>
